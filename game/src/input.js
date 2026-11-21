@@ -1,53 +1,44 @@
-// Keyboard and pointer input. Held keys give a steering direction; one-shot presses (start or
-// restart, pause) are queued as bit flags and taken once by the loop, so a press between two
-// frames is never lost and never counted twice.
+// Pointer and keyboard input: translating browser events into canvas coordinates and
+// the small geometry tests (inside a rectangle, inside a panel) the game uses to decide
+// what a click meant. The canvas is a fixed 1280x800 logical area scaled to the window,
+// so every event is rescaled back into that area first.
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './config.js';
 
-export const ACTION_CONFIRM = 1;
-export const ACTION_PAUSE = 2;
-
-const LEFT = new Set(['ArrowLeft', 'KeyA']);
-const RIGHT = new Set(['ArrowRight', 'KeyD']);
-const CONFIRM = new Set(['Space', 'Enter']);
-const PAUSE = new Set(['KeyP', 'Escape']);
-
-export function createInput(target) {
-  let left = false;
-  let right = false;
-  let actions = 0;
-
-  window.addEventListener('keydown', (event) => {
-    if (LEFT.has(event.code)) left = true;
-    else if (RIGHT.has(event.code)) right = true;
-    else if (CONFIRM.has(event.code)) {
-      if (!event.repeat) actions |= ACTION_CONFIRM;
-    } else if (PAUSE.has(event.code)) {
-      if (!event.repeat) actions |= ACTION_PAUSE;
-    } else return;
-    event.preventDefault();
-  });
-  window.addEventListener('keyup', (event) => {
-    if (LEFT.has(event.code)) left = false;
-    else if (RIGHT.has(event.code)) right = false;
-  });
-  // A key released while the tab is hidden never sends keyup: let go of everything on blur.
-  window.addEventListener('blur', () => {
-    left = false;
-    right = false;
-  });
-  target.addEventListener('pointerdown', () => {
-    actions |= ACTION_CONFIRM;
-  });
-
+/** A client (mouse/touch) position rescaled into the game's 1280x800 coordinates. */
+export function canvasPoint(canvas, clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
   return {
-    /** -1 for left, 1 for right, 0 for neither or both. */
-    direction() {
-      return (right ? 1 : 0) - (left ? 1 : 0);
-    },
-    /** The one-shot presses since the last call, as ACTION_* flags. */
-    takeActions() {
-      const taken = actions;
-      actions = 0;
-      return taken;
-    },
+    x: ((clientX - rect.left) * CANVAS_WIDTH) / rect.width,
+    y: ((clientY - rect.top) * CANVAS_HEIGHT) / rect.height,
   };
+}
+
+/** Wire pointer clicks and key presses to the game's handlers. */
+export function attachInput(canvas, handlers) {
+  canvas.addEventListener('pointerdown', (event) => {
+    const point = canvasPoint(canvas, event.clientX, event.clientY);
+    handlers.onPointer(point.x, point.y);
+  });
+  window.addEventListener('keydown', (event) => {
+    if (event.repeat) return;
+    handlers.onKey(event.key);
+  });
+}
+
+export function pointInRect(point, rect) {
+  return (
+    point.x >= rect.x &&
+    point.x <= rect.x + rect.w &&
+    point.y >= rect.y &&
+    point.y <= rect.y + rect.h
+  );
+}
+
+export function pointInPanel(point, panel) {
+  return pointInRect(point, panel);
+}
+
+/** A canvas point expressed in a panel's own scene coordinates (0..560, 0..420). */
+export function panelScenePoint(point, panel) {
+  return { x: point.x - panel.x, y: point.y - panel.y };
 }

@@ -1,61 +1,36 @@
-// Every tuning number and colour in one place. The playfield is a fixed 1280x720 logical area;
-// the renderer scales it to the window, so no rule below depends on the screen size.
+// Shared constants for Look Twice: canvas size, panel geometry, colours and timing.
+// Every module that positions anything on screen reads these, so the layout lives in one place.
+export const CANVAS_WIDTH = 1280;
+export const CANVAS_HEIGHT = 800;
 
-export const FIELD = { width: 1280, height: 720, groundY: 664 };
+export const SCENE_WIDTH = 560;
+export const SCENE_HEIGHT = 420;
 
-/** The simulation's fixed step, in seconds: 60 updates a second whatever the display's rate. */
-export const STEP = 1 / 60;
+// The two picture panels, side by side, in canvas coordinates.
+export const LEFT_PANEL = { x: 50, y: 96, w: SCENE_WIDTH, h: SCENE_HEIGHT };
+export const RIGHT_PANEL = { x: 670, y: 96, w: SCENE_WIDTH, h: SCENE_HEIGHT };
 
-export const PLAYER = {
-  width: 72,
-  height: 24,
-  speed: 560,
-  invulnerable: 1.5,
-};
+// Header strip at the top.
+export const HEADER_HEIGHT = 76;
 
-export const LIVES = 3;
+// Colours for the frame, the HUD and the found-difference markers.
+export const INK = '#20242e';
+export const PAPER = '#f7f2e7';
+export const HEADER_BG = '#1d2733';
+export const HEADER_TEXT = '#f7f2e7';
+export const ACCENT = '#e8a13c';
+export const MARKER_COLOR = '#ff3b30';
+export const MARKER_GLOW = 'rgba(255, 59, 48, 0.25)';
+export const HINT_COLOR = '#2fbf71';
 
-export const BLOCK = {
-  minWidth: 40,
-  maxWidth: 110,
-  height: 36,
-  speed: 240,
-  speedPerLevel: 30,
-  speedJitter: 90,
-  interval: 0.55,
-  intervalScale: 0.88,
-  minInterval: 0.14,
-  dodgePoints: 1,
-};
-
-export const COIN = {
-  size: 24,
-  speed: 190,
-  speedPerLevel: 14,
-  interval: 1.4,
-  intervalJitter: 0.8,
-  points: 10,
-};
-
-/** Seconds of play per level, and the last level: speeds and spawn rates stop growing there. */
-export const LEVEL = { seconds: 12, max: 12 };
-
-/** How many falling things can exist at once; the pool is allocated once, at boot. */
-export const POOL_SIZE = 64;
-
-export const PALETTE = {
-  backdrop: '#11141b',
-  sky: '#1b1f2a',
-  ground: '#2a3040',
-  player: '#4fc3f7',
-  block: '#e5534b',
-  coin: '#f2c94c',
-  panel: '#252b38',
-  text: '#eef1f5',
-  muted: '#8b93a3',
-};
-
-export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
-
-/** Where the best score is kept between visits (this browser only). */
-export const BEST_KEY = 'block-dodger.best';
+// Scoring and timing.
+export const POINTS_PER_FIND = 100;
+export const COMBO_STEP = 25;
+export const TIME_BONUS_PER_SECOND = 10;
+export const WRONG_CLICK_TIME_COST = 2;
+export const HINT_COST = 50;
+export const HINTS_PER_LEVEL = 3;
+export const HINT_RING_MS = 2500;
+export const WRONG_FLASH_MS = 450;
+export const FOUND_POP_MS = 420;
+export const LOW_TIME_SECONDS = 10;
